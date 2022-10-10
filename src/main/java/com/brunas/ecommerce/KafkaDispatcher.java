@@ -7,13 +7,12 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-class KafkaDispatcher implements Closeable {
+class KafkaDispatcher<T> implements Closeable {
 
-    private final KafkaProducer<String, String> producer;
+    private final KafkaProducer<String, T> producer;
 
     KafkaDispatcher() {
         this.producer = new KafkaProducer<>(properties());
@@ -28,7 +27,7 @@ class KafkaDispatcher implements Closeable {
         return properties;
     }
 
-    void send(String topic, String key, String value) throws ExecutionException, InterruptedException {
+    void send(String topic, String key, T value) throws ExecutionException, InterruptedException {
         var record = new ProducerRecord<>(topic, key, value); //(topico, chave, valor)
         //Callback(data, ex), que vai receber os dados de sucesso ou a exception de falha
         Callback callback = (data, ex) -> {

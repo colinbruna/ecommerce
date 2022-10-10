@@ -1,19 +1,24 @@
 package com.brunas.ecommerce;
 
-import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public class NewOrder {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (var dispatcher = new KafkaDispatcher()) {
-            var key = UUID.randomUUID().toString();
-            var value = key + " 22222, 333333333333"; //estou usando a mesma variavel para chave e valor
-            dispatcher.send("ECOMMERCE_NEW_ORDER", key, value);
-            var email = "Welcome! We are processing you order";
-            dispatcher.send("ECOMMERCE_SEND_EMAIL", key, email);
+        try (var orderDispatcher = new KafkaDispatcher<Order>()) {
+            try (var emailDispatcher = new KafkaDispatcher<String>()) {
+                var userId = UUID.randomUUID().toString();
+                var orderId = UUID.randomUUID().toString();
+                var amount = new BigDecimal(Math.random() * 500 + 1); //numero aleatório
+
+                var order = new Order(userId, orderId, amount);
+                orderDispatcher.send("ECOMMERCE_NEW_ORDER", userId, order);
+
+                var email = "Welcome! We are processing you order";
+                emailDispatcher.send("ECOMMERCE_SEND_EMAIL", userId, email);
+            }
         }
     }
 }
-
